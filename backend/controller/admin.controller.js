@@ -13,7 +13,7 @@ const addDoctor = async (req, res) => {
         const imageFile = req.file;
 
         // checking for all data to add doctor
-        if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address || !date) {
+        if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
             return res.status(400).json({ message: "All fields are required" });
         }
         if (!validator.isEmail(email)) {
@@ -79,5 +79,18 @@ const loginAdmin = async (req, res) => {
     }
 }
 
+// all the doctors get api
+const allDoctors = async (req, res) => {
+    try {
+        const doctors = await doctorModel.find({}).select("-password");
+        // if (doctors.length === 0) {
+        //     return res.status(404).json({ message: "No doctors found" });
+        // }
+        res.json({ success: true, doctors });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: error.message });
+    }
+}
 
-export { addDoctor, loginAdmin };
+export { addDoctor, loginAdmin, allDoctors };
