@@ -15,4 +15,14 @@ const changeAvilability = async (req, res) => {
     }
 }
 
-export { changeAvilability };
+const doctorList = async (req, res) => {
+    try {
+        const doctors = await doctorModel.find({}).select(['-password', '-email']);
+        res.json({ success: true, doctors });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: error.message });
+    }
+}
+
+export { changeAvilability, doctorList };

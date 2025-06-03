@@ -4,6 +4,7 @@ import 'dotenv/config';
 import connectDB from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
 import adminRouter from './routes/admin.route.js';
+import doctorRouter from './routes/doctor.route.js';
 
 //app config
 const app = express();
@@ -16,6 +17,7 @@ app.use(cors());
 
 //api endpoints
 app.use('/api/v1/admin', adminRouter)
+app.use('/api/v1/doctor', doctorRouter);
 //localhoat:5000/api/v1/admin/add-doctor
 // Routes
 app.get('/', (req, res) => {
