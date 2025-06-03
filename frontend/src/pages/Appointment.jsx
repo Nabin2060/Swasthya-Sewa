@@ -1,21 +1,30 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { assets } from "../assets/assets_frontend/assets";
 import RelatedDoctors from "../components/RelatedDoctors";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 const Appointment = () => {
   const { docId } = useParams();
-  const { doctors, currencySymbol } = useContext(AppContext);
+  const { doctors, currencySymbol, backendUrl, token, getDoctorsData } =
+    useContext(AppContext);
   const dayOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  const navigate = useNavigate();
   const [docInfo, setDocInfo] = useState(null);
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState("");
+  const [bookedSlots, setBookedSlots] = useState({});
 
   const fetchDocInfo = async () => {
     const docInfo = doctors.find((doc) => doc._id === docId);
     setDocInfo(docInfo);
+    if (docInfo?.slots_booked) {
+      //already book slots
+      setBookedSlots(docInfo.slots_booked);
+    }
   };
 
   const getAvailableSlots = async () => {
@@ -43,6 +52,7 @@ const Appointment = () => {
       }
 
       let timeSlots = [];
+      const dateStr = currentDate.toISOString().split("T")[0]; // Format: YYYY-MM-DD check gareko
 
       while (currentDate < endTime) {
         let formattedTime = currentDate.toLocaleTimeString([], {
@@ -50,14 +60,62 @@ const Appointment = () => {
           minute: "2-digit"
         });
 
+        // Check if this slot is already booked cha choina
+        const isBooked = bookedSlots[dateStr]?.includes(formattedTime);
+
         timeSlots.push({
           datetime: new Date(currentDate),
-          time: formattedTime
+          time: formattedTime,
+          isBooked: isBooked
         });
 
         currentDate.setMinutes(currentDate.getMinutes() + 30);
       }
       setDocSlots((prev) => [...prev, timeSlots]);
+    }
+  };
+
+  const bookAppointment = async () => {
+    if (!token) {
+      toast.warn("Login to book appointment");
+      return navigate("/login");
+    }
+
+    if (!slotTime) {
+      toast.warn("Please select a time slot");
+      return;
+    }
+
+    try {
+      const date = docSlots[slotIndex][0].datetime;
+      const slotDate = date.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+
+      const { data } = await axios.post(
+        backendUrl + "/api/v1/user/book-appointment",
+        {
+          docId,
+          slotDate,
+          slotTime
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        getDoctorsData();
+        navigate("/my-appointments");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to book appointment"
+      );
     }
   };
 
@@ -163,15 +221,19 @@ const Appointment = () => {
                 {docSlots.length > 0 &&
                   docSlots[slotIndex].map((item, index) => (
                     <button
-                      onClick={() => setSlotTime(item.time)}
+                      onClick={() => !item.isBooked && setSlotTime(item.time)}
                       className={`text-sm px-4 py-2 rounded-full ${
-                        item.time === slotTime
+                        item.isBooked
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : item.time === slotTime
                           ? "bg-blue-500 text-white"
                           : "border border-gray-200 text-gray-600 hover:border-blue-500"
                       }`}
                       key={index}
+                      disabled={item.isBooked}
                     >
                       {item.time}
+                      {item.isBooked && " (Booked)"}
                     </button>
                   ))}
               </div>
@@ -179,7 +241,8 @@ const Appointment = () => {
 
             {/* Book Button */}
             <button
-              className="w-full bg-blue-500 text-white font-medium px-6 py-3 rounded-full hover:bg-blue-600 transition-all duration-300"
+              onClick={bookAppointment}
+              className="w-full bg-blue-500 text-white font-medium px-6 py-3 rounded-full hover:bg-blue-600 transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
               disabled={!slotTime}
             >
               Book Appointment
