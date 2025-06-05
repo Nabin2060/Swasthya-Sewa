@@ -5,6 +5,7 @@ import userModel from '../models/userModel.js'
 import doctorModel from '../models/doctor.Model.js';
 import appointmentModel from '../models/appointment.Model.js';
 import { v2 as cloudinary } from 'cloudinary';
+import razorpay from 'razorpay';
 
 //register user
 
@@ -398,8 +399,93 @@ const cancelAppointment = async (req, res) => {
     }
 };
 
-//
+// api to make payment of appointment using razorpay
+const razorpayInstance = new razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+});
+
+// const paymentRazorpay = async (req, res) => {
+//     try {
+//         const { appointmentId } = req.body;
+//         const appointmentData = await appointmentModel.findById(appointmentId);
+
+//         if (!appointmentData || appointmentData.cancelled) {
+//             return res.json({ success: false, message: "Appointment not found or already cancelled" });
+//         }
+//         // create order in razorpay
+//         const options = {
+//             amount: appointmentData.amout * 100, // amount in paise
+//             currency: process.env.CURRENCY || "USD",
+//             recipt: appointmentId,
+//         }
+//         // create order
+//         const order = await razorpayInstance.orders.create(options);
+//         if (!order) {
+//             return res.status(500).json({ success: false, message: "Failed to create order" });
+//         }
+//         return res.status(200).json({ success: true, order });
+//     } catch (error) {
+//         console.error("Payment error:", error);
+//         return res.status(500).json({ success: false, message: "Payment failed", error: error.message });
+//     }
+
+// }
+
+const paymentRazorpay = async (req, res) => {
+    try {
+        const { appointmentId } = req.body;
+        const appointmentData = await appointmentModel.findById(appointmentId);
+
+        if (!appointmentData || appointmentData.cancelled) {
+            return res.status(404).json({ success: false, message: "Appointment not found or already cancelled" });
+        }
+
+        // Check if amount field is spelled correctly
+        const amount = appointmentData.amount; // 🔧 FIX: 'amout' → 'amount'
+        if (!amount) {
+            return res.status(400).json({ success: false, message: "Invalid appointment amount" });
+        }
+
+        // Create order in Razorpay
+        const options = {
+            amount: amount * 100, // amount in paisa
+            currency: process.env.CURRENCY || "NPR",
+            receipt: String(appointmentId), // 🔧 FIX: 'recipt' → 'receipt'
+        };
+
+        const order = await razorpayInstance.orders.create(options);
+
+        if (!order) {
+            return res.status(500).json({ success: false, message: "Failed to create order" });
+        }
+
+        return res.status(200).json({ success: true, order });
+    } catch (error) {
+        console.error("Payment error:", error);
+        return res.status(500).json({ success: false, message: "Payment failed", error: error.message });
+    }
+};
+
+// api to verify payment of razorpay
+const verifyRazorpay = async (req, res) => {
+    try {
+        const { razorpay_payment_id } = req.body;
+        const orderInfo = await razorpayInstance.payments.fetch(razorpay_payment_id);
+        console.log(orderInfo);
+        if (orderInfo.status === 'paid') {
+            await appointmentModel.findByIdAndUpdate(orderInfo.receipt, { payment: true });
+            return res.status(200).json({ success: true, message: "Payment successfully" });
+        } else {
+            return res.status(400).json({ success: false, message: "Payment verification failed" });
+        }
+
+    } catch (error) {
+        console.error("Razorpay verification error:", error);
+        return res.status(500).json({ success: false, message: "Payment verification failed", error: error.message });
+    }
+}
 
 
 
-export { create, login, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment };
+export { create, login, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, paymentRazorpay, verifyRazorpay };

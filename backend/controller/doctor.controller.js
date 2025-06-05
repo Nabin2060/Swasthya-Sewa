@@ -1,4 +1,6 @@
 import doctorModel from "../models/doctor.Model.js";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 
 const changeAvilability = async (req, res) => {
@@ -25,4 +27,29 @@ const doctorList = async (req, res) => {
     }
 }
 
-export { changeAvilability, doctorList };
+//api for doctor login
+
+const loginDoctor = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const doctor = await doctorModel.findOne({ email });
+
+        if (!doctor) {
+            return res.status(404).json({ message: "Doctor not found" });
+        }
+        const isMatch = await bcrypt.compare(password, doctor.password);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: "Invalid credentials" });
+        }
+        else {
+            const token = jwt.sign({ id: doctor._id }, process.env.JWT_SECRET)
+            return res.status(200).json({ success: true, message: "Login successful", token, doctor });
+
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: error.message });
+    }
+}
+
+export { changeAvilability, doctorList, loginDoctor };
