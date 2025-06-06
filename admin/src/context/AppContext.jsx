@@ -3,7 +3,7 @@ import { createContext } from "react";
 export const AppContext = createContext();
 
 const AppContextProvider = (props) => {
-  const currency = "NPR :";
+  const currency = "NPR : ";
   const calculateAge = (dob) => {
     if (!dob) return "N/A";
 
@@ -29,10 +29,38 @@ const AppContextProvider = (props) => {
 
     return age;
   };
+  const months = [
+    "",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "July",
+    "Aug",
+    "Sept",
+    "Oct",
+    "Nov",
+    "Dec"
+  ];
+  const slotDateFormat = (slotDate) => {
+    if (!slotDate) return "N/A";
+
+    try {
+      // Handle date format like "2025-06-04"
+      const [year, month, day] = slotDate.split("-");
+      return `${day} ${months[parseInt(month)]} ${year}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return slotDate; // Return original date if formatting fails
+    }
+  };
 
   const value = {
     calculateAge,
-    currency
+    currency,
+    slotDateFormat
   };
   return (
     <AppContext.Provider value={value}>{props.children}</AppContext.Provider>

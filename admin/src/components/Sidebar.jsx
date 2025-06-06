@@ -2,13 +2,15 @@ import React, { useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets_admin/assets";
 import { AdminContext } from "../context/AdminContext";
-// import { toast } from "react-toastify";
+import { DoctorContext } from "../context/DoctorContext";
+import { toast } from "react-toastify";
 
 const Sidebar = () => {
   const { setAToken } = useContext(AdminContext);
+  const { dToken, setDToken } = useContext(DoctorContext);
   const navigate = useNavigate();
 
-  const menuItems = [
+  const adminMenuItems = [
     {
       path: "/admin-dashboard",
       name: "Dashboard",
@@ -31,12 +33,44 @@ const Sidebar = () => {
     }
   ];
 
-  //   const handleLogout = () => {
-  //     setAToken("");
-  //     localStorage.removeItem("adminToken");
-  //     toast.success("Logged out successfully!");
-  //     navigate("/");
-  //   };
+  const doctorMenuItems = [
+    {
+      path: "/doctor-dashboard",
+      name: "Dashboard",
+      icon: assets.home_icon
+    },
+    {
+      path: "/doctor-appointment",
+      name: "My Appointments",
+      icon: assets.appointments_icon
+    },
+    {
+      path: "/doctor-profile",
+      name: "My Profile",
+      icon: assets.doctor_icon
+    }
+  ];
+
+  const handleLogout = () => {
+    try {
+      if (dToken) {
+        setDToken("");
+        localStorage.removeItem("dToken");
+        toast.success("Logged out successfully!");
+        navigate("/doctor-login");
+      } else {
+        setAToken("");
+        localStorage.removeItem("adminToken");
+        toast.success("Logged out successfully!");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Error during logout. Please try again.");
+    }
+  };
+
+  const menuItems = dToken ? doctorMenuItems : adminMenuItems;
 
   return (
     <div className="w-64 min-h-screen bg-white shadow-lg relative">
@@ -67,7 +101,7 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* <div className="absolute bottom-0 w-64 p-4 border-t">
+      <div className="absolute bottom-0 w-64 p-4 border-t">
         <div
           onClick={handleLogout}
           className="flex items-center px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg cursor-pointer transition-colors duration-200"
@@ -75,7 +109,7 @@ const Sidebar = () => {
           <img src={assets.cancel_icon} alt="Logout" className="w-5 h-5 mr-3" />
           <span className="text-sm font-medium">Logout</span>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 };

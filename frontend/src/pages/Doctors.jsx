@@ -153,8 +153,17 @@ const Doctors = () => {
                           src={doc.image}
                           alt={doc.name}
                         />
-                        <div className="absolute top-2 right-2 flex items-center gap-2 text-sm text-green-500 bg-white px-3 py-1 rounded-full shadow-sm">
-                          <p className="w-1 h-1 bg-green-500 rounded-full"></p>
+                        <div
+                          className={`absolute top-2 right-2 flex items-center ${
+                            doc.available ? "text-green-500" : "text-gray-500"
+                          } gap-2 text-sm  bg-white px-3 py-1 rounded-full shadow-sm`}
+                        >
+                          <p
+                            className={`w-2 h-2 ${
+                              doc.available ? "bg-green-500" : "bg-gray-500"
+                            } rounded-full`}
+                          ></p>
+                          <p>{doc.available ? "Available" : "Not Available"}</p>
                           <p>Available</p>
                         </div>
                       </div>

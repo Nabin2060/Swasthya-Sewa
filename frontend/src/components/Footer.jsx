@@ -20,9 +20,9 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src={assets.logo}
+                src="/public/swasthya-logo.png"
                 alt="Swasthya Sewa Logo"
-                className="w-12 h-12 object-contain"
+                className="w-30 h-19 object-contain"
               />
               <h3 className="text-2xl font-bold text-white">Swasthya Sewa</h3>
             </div>
