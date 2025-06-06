@@ -14,7 +14,22 @@ connectDB();
 connectCloudinary();
 
 app.use(express.json());
-app.use(cors());
+const allowedOrigins = [
+    "https://swasthya-sewa-frontend.onrender.com",
+    "https://swasthya-sewa-admin.onrender.com"
+
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true
+}));
 
 //api endpoints
 app.use('/api/v1/admin', adminRouter)
