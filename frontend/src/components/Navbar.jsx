@@ -20,7 +20,7 @@ const Navbar = () => {
       <img
         onClick={() => navigate("/")}
         className="w-30 h-20 cursor-pointer"
-        src="public/swasthya-logo.png"
+        src="/swasthya-logo.png"
         alt="Swa"
       />
       <ul className="hidden md:flex items-start gap-5 font-medium">

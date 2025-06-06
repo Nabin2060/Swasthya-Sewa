@@ -22,7 +22,7 @@ const Navbar = () => {
       <div className="flex items-center gap-2 text-xs">
         <img
           className="w-36 sm:w-40 cursor-pointer"
-          src="/public/swasthya-logo.png"
+          src="/swasthya-logo.png"
           alt=""
         />
         <p className="border px-2.5 py-0.5 rounded-full border-gray-500 text-gray-600">
