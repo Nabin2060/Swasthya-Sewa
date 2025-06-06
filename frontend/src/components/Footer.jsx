@@ -9,7 +9,7 @@ import {
   FaEnvelope,
   FaMapMarkerAlt
 } from "react-icons/fa";
-import { assets } from "../assets/assets_frontend/assets";
+// import { assets } from "../assets/assets_frontend/assets";
 
 const Footer = () => {
   return (
